@@ -54,15 +54,6 @@ A few details I cared about:
 - Spotify tokens are encrypted in the database and refreshed automatically.
 - Login is protected against CSRF, and the UI never renders user text as HTML.
 
-## Tests
-
-```bash
-npm test
-```
-
-73 unit and integration tests cover the scoring, the Spotify login flow, and the like/match logic.
-They run on an in-memory database, so no setup is needed. CI also runs them against real PostgreSQL.
-
 ## Common issues
 
 - **"Invalid redirect URI":** the URI in the Spotify dashboard must match exactly, using `127.0.0.1`, not `localhost`.
