@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: tuned
+          POSTGRES_PASSWORD: tuned
+          POSTGRES_DB: tuned_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tuned"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # Integration tests run against real Postgres here (locally they default to in-memory pg-mem).
+      - run: npm test
+        env:
+          TEST_DATABASE_URL: postgres://tuned:tuned@localhost:5432/tuned_test
+      - run: npm run build
+      - name: Build Docker image
+        run: docker build -t tuned-api:ci .
+
+  # Checks the no-Docker local setup (npm run setup + npm run db + server start) on each OS.
+  local-setup:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run setup
+      - name: Start embedded Postgres
+        run: |
+          npm run db > db.log 2>&1 &
+          for i in $(seq 1 120); do
+            grep -q "postgres ready" db.log && break
+            grep -qi "failed" db.log && break
+            sleep 1
+          done
+          cat db.log
+          grep -q "postgres ready" db.log
+      - name: Start the server (migrates on boot) and check health
+        env:
+          # Placeholders: enough for the server to start; Spotify isn't called here.
+          SPOTIFY_CLIENT_ID: ci-placeholder
+          SPOTIFY_CLIENT_SECRET: ci-placeholder
+        run: |
+          npx tsx src/server.ts > server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:3000/health && break
+            sleep 1
+          done
+          cat server.log
+          curl -sf http://127.0.0.1:3000/health
+          grep -q "applied 001_init.sql" server.log

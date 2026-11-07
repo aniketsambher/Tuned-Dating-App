@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Tuned</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/app.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#discover" aria-label="Tuned home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="4" y="12" width="4" height="8" rx="2" />
+          <rect x="11" y="6" width="4" height="20" rx="2" />
+          <rect x="18" y="9" width="4" height="14" rx="2" />
+          <rect x="25" y="13" width="4" height="6" rx="2" />
+        </svg>
+        <span>Tuned</span>
+      </a>
+      <nav class="nav" id="nav" hidden>
+        <a href="#discover" data-route="discover">Discover</a>
+        <a href="#matches" data-route="matches">Matches</a>
+        <a href="#profile" data-route="profile">Profile</a>
+        <button type="button" class="link-button" id="logout">Log out</button>
+      </nav>
+    </header>
+
+    <main id="view" class="view" tabindex="-1">
+      <p class="loading">Loading…</p>
+    </main>
+
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+    <div id="modal-root"></div>
+
+    <noscript><p class="noscript">Tuned needs JavaScript enabled.</p></noscript>
+  </body>
+</html>
